@@ -337,11 +337,11 @@
                 </div>
                 <button type="submit" class="auth-btn">Login as Student</button>
             </form>
-            <div class="auth-link">Don't have an account? <a onclick="showRegistration()">Register here</a></div>
             <div style="display:flex;justify-content:space-between;margin-top:1rem;flex-wrap:wrap;gap:0.5rem;">
                 <a onclick="openForgotModal('userid')" style="color:var(--primary-color);font-size:0.875rem;cursor:pointer;font-weight:600;">🔍 Forgot User ID?</a>
                 <a onclick="openForgotModal('password')" style="color:var(--primary-color);font-size:0.875rem;cursor:pointer;font-weight:600;">🔑 Forgot Password?</a>
             </div>
+            <div class="auth-link" style="margin-top:0.75rem;">Don't have an account? <a onclick="showRegistration()">Register here</a></div>
         </div>
 
         <!-- Admin Login -->
@@ -593,7 +593,7 @@
                         <button class="btn btn-success" onclick="downloadAllData()">📥 Download All Student Data</button>
                         <button class="btn btn-primary" onclick="exportToExcel()">📊 Export to Excel</button>
                         <button class="btn btn-warning" onclick="backupData()">💾 Backup Data</button>
-                        <button class="btn btn-info" onclick="switchTab('students', document.querySelector('.tab:nth-child(2))'))">👥 View All Students</button>
+                        <button class="btn btn-info" onclick="switchTab('students', document.querySelectorAll('.tab')[1])">👥 View All Students</button>
                     </div>
                 </div>
             </div>
@@ -1120,9 +1120,12 @@ function handleLogout() {
 
 function adminLogout() {
     sessionStorage.removeItem('adminLoggedIn');
-    updateUIForAdminStatus();
+    // FIX: hide logout button immediately before redirect to avoid flash
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) logoutBtn.style.display = 'none';
+    showLogin();
+    switchLoginTab('admin');
     showAlert('Admin logged out.', 'info');
-    setTimeout(() => { showLogin(); switchLoginTab('admin'); }, 500);
 }
 
 // ── Profile submission ────────────────────────────────────────
@@ -1304,8 +1307,9 @@ function loadThemeSettings() {
 
 function changeTheme() {
     const theme = document.getElementById('themeSelector').value;
-    document.body.className = '';
-    if (theme !== 'blue') document.body.classList.add(`theme-${theme}`);
+    // FIX: only remove theme-* classes — don't wipe all body classes (breaks dark mode etc.)
+    ['green','purple','orange','red'].forEach(t => document.body.classList.remove('theme-' + t));
+    if (theme !== 'blue') document.body.classList.add('theme-' + theme);
     localStorage.setItem('selectedTheme', theme);
 }
 
@@ -1533,14 +1537,23 @@ function renderStudentsTable(students, asgCounts, isCloud) {
     });
 }
 
-function searchStudents() {
+async function searchStudents() {
     const term = document.getElementById('searchStudent').value.toLowerCase();
-    const students = getStudents().filter(s =>
+    const allStudents = await getStudentsFromCloud();
+    const students = allStudents.filter(s =>
         (s.name||'').toLowerCase().includes(term) || (s.email||'').toLowerCase().includes(term) ||
         (s.enrollment||s.Enrollment||'').toLowerCase().includes(term) ||
         (s.state||'').toLowerCase().includes(term) || (s.district||'').toLowerCase().includes(term)
     );
-    renderStudentsTable(students, {}, false);
+    // FIX: use cloud-aware render — pass isCloud flag so view/delete buttons work correctly
+    if (db) {
+        const { data: asgns } = await db.from('assignments').select('student_id');
+        const asgCounts = {};
+        (asgns || []).forEach(a => { asgCounts[a.student_id] = (asgCounts[a.student_id] || 0) + 1; });
+        renderStudentsTable(students, asgCounts, true);
+    } else {
+        renderStudentsTable(students, {}, false);
+    }
 }
 
 // View student details
@@ -1607,11 +1620,15 @@ function showStudentModal(student, asgnsHTML) {
 
 async function deleteStudentCloud(studentId) {
     if (!confirm('Delete this student and all their assignments?')) return;
+    // FIX: fetch user_id BEFORE deleting — row won't exist after delete
+    const { data: studentRow } = await db.from('students').select('user_id').eq('id', studentId).maybeSingle();
+    const userIdToDelete = studentRow?.user_id || null;
     const { data: asgns } = await db.from('assignments').select('file_path').eq('student_id', studentId);
     const paths = (asgns || []).map(a => a.file_path).filter(Boolean);
     if (paths.length > 0) await db.storage.from('assignments').remove(paths);
+    await db.from('assignments').delete().eq('student_id', studentId);
     await db.from('students').delete().eq('id', studentId);
-    await db.from('users').delete().eq('user_id', (await db.from('students').select('user_id').eq('id',studentId).maybeSingle())?.data?.user_id);
+    if (userIdToDelete) await db.from('users').delete().eq('user_id', userIdToDelete);
     loadStudentsTable(); loadDashboardStats(); showAlert('Student deleted.', 'success');
 }
 
@@ -1700,20 +1717,28 @@ function setDeadline() {
     loadAssignmentStats();
 }
 
-function loadAssignmentStats() {
-    const students = getStudents();
-    const count    = getAssignmentCount();
-    const deadlines = getDeadlines();
-    const names    = getAssignmentNames();
+async function loadAssignmentStats() {
+    // FIX: use cloud data when Supabase is connected
+    const students  = await getStudentsFromCloud();
+    const deadlines = await getDeadlinesFromCloud();
+    const names     = db ? await getAssignmentNamesFromCloud() : getAssignmentNames();
+    const count     = getAssignmentCount();
     const container = document.getElementById('assignmentStats');
     const listContainer = document.getElementById('assignmentsList');
     let statsHTML = '<div class="stats-grid">';
     let listHTML  = '<div class="form-section">';
 
+    // For cloud: count assignments per assignment_key from assignments table
+    let cloudAsgCounts = {};
+    if (db) {
+        const { data: asgns } = await db.from('assignments').select('assignment_key');
+        (asgns || []).forEach(a => { cloudAsgCounts[a.assignment_key] = (cloudAsgCounts[a.assignment_key] || 0) + 1; });
+    }
+
     for (let i = 1; i <= count; i++) {
-        const key = `assignment${i}`;
+        const key  = `assignment${i}`;
         const name = names[key] || `Assignment ${i}`;
-        const submitted = students.filter(s => s.assignments?.[key]).length;
+        const submitted = db ? (cloudAsgCounts[key] || 0) : students.filter(s => s.assignments?.[key]).length;
         const deadline  = deadlines[key] ? new Date(deadlines[key]).toLocaleString() : 'Not set';
         const progress  = students.length > 0 ? (submitted / students.length * 100).toFixed(1) : 0;
 
@@ -1829,8 +1854,12 @@ async function loadAnalytics() {
 }
 
 // ── Export / download ──────────────────────────────────────────
-function downloadAllData() {
-    const data = { exportDate: new Date().toISOString(), students: getStudents(), deadlines: getDeadlines(), assignmentNames: getAssignmentNames(), assignmentCount: getAssignmentCount() };
+async function downloadAllData() {
+    // FIX: use cloud data when Supabase is connected
+    const students  = await getStudentsFromCloud();
+    const deadlines = await getDeadlinesFromCloud();
+    const names     = db ? await getAssignmentNamesFromCloud() : getAssignmentNames();
+    const data = { exportDate: new Date().toISOString(), students, deadlines, assignmentNames: names, assignmentCount: getAssignmentCount() };
     const blob = new Blob([JSON.stringify(data,null,2)], { type: 'application/json' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a'); a.href = url; a.download = `student-data-${new Date().toISOString().split('T')[0]}.json`;
@@ -1957,8 +1986,12 @@ function applyAssignmentCount() {
     showAlert(`Assignment count updated to ${newCount}!`, 'success');
 }
 
-function backupData() {
-    const data = { students: getStudents(), deadlines: getDeadlines(), assignmentNames: getAssignmentNames(), settings: { allowRegistrations: localStorage.getItem('allowRegistrations'), maxFileSize: localStorage.getItem('maxFileSize'), assignmentCount: getAssignmentCount() }, backupDate: new Date().toISOString() };
+async function backupData() {
+    // FIX: use cloud data when Supabase is connected
+    const students  = await getStudentsFromCloud();
+    const deadlines = await getDeadlinesFromCloud();
+    const names     = db ? await getAssignmentNamesFromCloud() : getAssignmentNames();
+    const data = { students, deadlines, assignmentNames: names, settings: { allowRegistrations: localStorage.getItem('allowRegistrations'), maxFileSize: localStorage.getItem('maxFileSize'), assignmentCount: getAssignmentCount() }, backupDate: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(data,null,2)], { type: 'application/json' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a'); a.href = url; a.download = `backup-${new Date().toISOString().split('T')[0]}.json`;
@@ -2151,25 +2184,37 @@ function openForgotModal(tab) {
 }
 
 function switchForgotTab(tab) {
-    const userIdTab  = document.getElementById('forgotTabUserId');
-    const passTab    = document.getElementById('forgotTabPassword');
+    const userIdTab   = document.getElementById('forgotTabUserId');
+    const passTab     = document.getElementById('forgotTabPassword');
     const userIdPanel = document.getElementById('forgotUserIdPanel');
-    const passPanel  = document.getElementById('forgotPasswordPanel');
+    const passPanel   = document.getElementById('forgotPasswordPanel');
 
     if (tab === 'userid') {
-        userIdTab.style.borderBottomColor  = 'var(--primary-color)';
-        userIdTab.style.color              = 'var(--primary-color)';
-        passTab.style.borderBottomColor    = 'transparent';
-        passTab.style.color                = 'var(--text-secondary)';
+        userIdTab.style.borderBottomColor = 'var(--primary-color)';
+        userIdTab.style.color             = 'var(--primary-color)';
+        passTab.style.borderBottomColor   = 'transparent';
+        passTab.style.color               = 'var(--text-secondary)';
         userIdPanel.style.display = 'block';
         passPanel.style.display   = 'none';
     } else {
-        passTab.style.borderBottomColor    = 'var(--primary-color)';
-        passTab.style.color                = 'var(--primary-color)';
-        userIdTab.style.borderBottomColor  = 'transparent';
-        userIdTab.style.color              = 'var(--text-secondary)';
+        passTab.style.borderBottomColor   = 'var(--primary-color)';
+        passTab.style.color               = 'var(--primary-color)';
+        userIdTab.style.borderBottomColor = 'transparent';
+        userIdTab.style.color             = 'var(--text-secondary)';
         passPanel.style.display   = 'block';
         userIdPanel.style.display = 'none';
+        // FIX: always reset password flow to Step 1 when switching to this tab
+        const s1 = document.getElementById('forgotPasswordStep1');
+        const s2 = document.getElementById('forgotPasswordStep2');
+        if (s1) s1.style.display = 'block';
+        if (s2) s2.style.display = 'none';
+        _resetVerifiedUserId = null;
+        ['resetEmail','resetPhone','resetNewPassword','resetConfirmPassword'].forEach(id => {
+            const el = document.getElementById(id); if (el) el.value = '';
+        });
+        ['resetEmailError','resetPhoneError','resetNewPasswordError','resetConfirmPasswordError'].forEach(id => {
+            const el = document.getElementById(id); if (el) el.style.display = 'none';
+        });
     }
 }
 
