@@ -338,6 +338,10 @@
                 <button type="submit" class="auth-btn">Login as Student</button>
             </form>
             <div class="auth-link">Don't have an account? <a onclick="showRegistration()">Register here</a></div>
+            <div style="display:flex;justify-content:space-between;margin-top:1rem;flex-wrap:wrap;gap:0.5rem;">
+                <a onclick="openForgotModal('userid')" style="color:var(--primary-color);font-size:0.875rem;cursor:pointer;font-weight:600;">🔍 Forgot User ID?</a>
+                <a onclick="openForgotModal('password')" style="color:var(--primary-color);font-size:0.875rem;cursor:pointer;font-weight:600;">🔑 Forgot Password?</a>
+            </div>
         </div>
 
         <!-- Admin Login -->
@@ -797,6 +801,78 @@
         </div>
         <div id="studentDetailsContent"></div>
     </div>
+</div>
+
+<!-- ═══ FORGOT USER ID / PASSWORD MODAL ═══ -->
+<div id="forgotModal" class="modal">
+  <div class="modal-content" style="max-width:460px;">
+    <div class="modal-header">
+      <h3 class="modal-title" id="forgotModalTitle">Account Recovery</h3>
+      <button class="close-btn" onclick="closeModal('forgotModal')">&times;</button>
+    </div>
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;margin-bottom:1.5rem;border-bottom:2px solid var(--border-color);">
+      <button id="forgotTabUserId" onclick="switchForgotTab('userid')" style="flex:1;padding:0.75rem;background:none;border:none;border-bottom:3px solid var(--primary-color);color:var(--primary-color);font-weight:600;cursor:pointer;font-size:0.9rem;">🔍 Forgot User ID</button>
+      <button id="forgotTabPassword" onclick="switchForgotTab('password')" style="flex:1;padding:0.75rem;background:none;border:none;border-bottom:3px solid transparent;color:var(--text-secondary);font-weight:600;cursor:pointer;font-size:0.9rem;">🔑 Forgot Password</button>
+    </div>
+    <!-- Forgot User ID panel -->
+    <div id="forgotUserIdPanel">
+      <p style="color:var(--text-secondary);font-size:0.875rem;margin-bottom:1.25rem;">Enter the email and phone number you registered with. We will show you your User ID.</p>
+      <div class="form-group">
+        <label class="form-label">Registered Email</label>
+        <input type="email" id="forgotEmail" class="form-control" placeholder="Enter your email">
+        <div style="color:var(--danger-color);font-size:0.8rem;margin-top:0.25rem;display:none;" id="forgotEmailError"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Registered Phone Number</label>
+        <input type="tel" id="forgotPhone" class="form-control" placeholder="10-digit phone number" maxlength="10">
+        <div style="color:var(--danger-color);font-size:0.8rem;margin-top:0.25rem;display:none;" id="forgotPhoneError"></div>
+      </div>
+      <button class="btn btn-primary" onclick="recoverUserId()" style="width:100%;">🔍 Find My User ID</button>
+      <div id="forgotUserIdResult" style="display:none;margin-top:1.25rem;background:rgba(16,185,129,0.1);border:1px solid var(--success-color);border-radius:8px;padding:1rem;text-align:center;">
+        <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.5px;">Your User ID</div>
+        <div id="recoveredUserId" style="font-size:1.5rem;font-weight:700;color:var(--primary-color);font-family:'Courier New',monospace;letter-spacing:2px;"></div>
+        <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:0.5rem;">Copy this and use it to login</div>
+      </div>
+    </div>
+    <!-- Forgot Password panel -->
+    <div id="forgotPasswordPanel" style="display:none;">
+      <p style="color:var(--text-secondary);font-size:0.875rem;margin-bottom:1.25rem;">Verify your identity with your email and phone number, then set a new password.</p>
+      <div id="forgotPasswordStep1">
+        <div class="form-group">
+          <label class="form-label">Registered Email</label>
+          <input type="email" id="resetEmail" class="form-control" placeholder="Enter your email">
+          <div style="color:var(--danger-color);font-size:0.8rem;margin-top:0.25rem;display:none;" id="resetEmailError"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Registered Phone Number</label>
+          <input type="tel" id="resetPhone" class="form-control" placeholder="10-digit phone number" maxlength="10">
+          <div style="color:var(--danger-color);font-size:0.8rem;margin-top:0.25rem;display:none;" id="resetPhoneError"></div>
+        </div>
+        <button class="btn btn-primary" onclick="verifyForPasswordReset()" style="width:100%;">✅ Verify Identity</button>
+      </div>
+      <div id="forgotPasswordStep2" style="display:none;">
+        <div style="background:rgba(16,185,129,0.1);border-left:3px solid var(--success-color);border-radius:6px;padding:0.75rem;margin-bottom:1.25rem;font-size:0.875rem;color:var(--success-color);font-weight:600;">✓ Identity verified! Set your new password below.</div>
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <div style="position:relative;">
+            <input type="password" id="resetNewPassword" class="form-control" placeholder="Enter new password (min 6 chars)">
+            <span onclick="togglePassword('resetNewPassword')" style="position:absolute;right:1rem;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text-secondary);">👁️</span>
+          </div>
+          <div style="color:var(--danger-color);font-size:0.8rem;margin-top:0.25rem;display:none;" id="resetNewPasswordError"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm New Password</label>
+          <div style="position:relative;">
+            <input type="password" id="resetConfirmPassword" class="form-control" placeholder="Re-enter new password">
+            <span onclick="togglePassword('resetConfirmPassword')" style="position:absolute;right:1rem;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text-secondary);">👁️</span>
+          </div>
+          <div style="color:var(--danger-color);font-size:0.8rem;margin-top:0.25rem;display:none;" id="resetConfirmPasswordError"></div>
+        </div>
+        <button class="btn btn-primary" onclick="resetPassword()" style="width:100%;">🔑 Reset Password</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════
@@ -2046,6 +2122,174 @@ window.addEventListener('DOMContentLoaded', async () => {
     };
     tryInit();
 });
+
+// ── FORGOT USER ID / PASSWORD ──────────────────────────────
+
+// Stores the verified user_id during password reset flow
+let _resetVerifiedUserId = null;
+
+function openForgotModal(tab) {
+    // Clear all fields and results
+    ['forgotEmail','forgotPhone','resetEmail','resetPhone','resetNewPassword','resetConfirmPassword'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    ['forgotEmailError','forgotPhoneError','resetEmailError','resetPhoneError','resetNewPasswordError','resetConfirmPasswordError'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
+    const result = document.getElementById('forgotUserIdResult');
+    if (result) result.style.display = 'none';
+    const step2 = document.getElementById('forgotPasswordStep2');
+    if (step2) step2.style.display = 'none';
+    const step1 = document.getElementById('forgotPasswordStep1');
+    if (step1) step1.style.display = 'block';
+    _resetVerifiedUserId = null;
+
+    document.getElementById('forgotModal').classList.add('active');
+    switchForgotTab(tab);
+}
+
+function switchForgotTab(tab) {
+    const userIdTab  = document.getElementById('forgotTabUserId');
+    const passTab    = document.getElementById('forgotTabPassword');
+    const userIdPanel = document.getElementById('forgotUserIdPanel');
+    const passPanel  = document.getElementById('forgotPasswordPanel');
+
+    if (tab === 'userid') {
+        userIdTab.style.borderBottomColor  = 'var(--primary-color)';
+        userIdTab.style.color              = 'var(--primary-color)';
+        passTab.style.borderBottomColor    = 'transparent';
+        passTab.style.color                = 'var(--text-secondary)';
+        userIdPanel.style.display = 'block';
+        passPanel.style.display   = 'none';
+    } else {
+        passTab.style.borderBottomColor    = 'var(--primary-color)';
+        passTab.style.color                = 'var(--primary-color)';
+        userIdTab.style.borderBottomColor  = 'transparent';
+        userIdTab.style.color              = 'var(--text-secondary)';
+        passPanel.style.display   = 'block';
+        userIdPanel.style.display = 'none';
+    }
+}
+
+// ── Recover User ID ────────────────────────────────────────
+async function recoverUserId() {
+    const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
+    const phone = document.getElementById('forgotPhone').value.trim();
+
+    // Clear errors
+    ['forgotEmailError','forgotPhoneError'].forEach(id => { document.getElementById(id).style.display = 'none'; });
+    document.getElementById('forgotUserIdResult').style.display = 'none';
+
+    let hasErr = false;
+    if (!validateEmail(email)) {
+        const el = document.getElementById('forgotEmailError');
+        el.textContent = 'Please enter a valid email address'; el.style.display = 'block'; hasErr = true;
+    }
+    if (!/^[0-9]{10}$/.test(phone)) {
+        const el = document.getElementById('forgotPhoneError');
+        el.textContent = 'Please enter a valid 10-digit phone number'; el.style.display = 'block'; hasErr = true;
+    }
+    if (hasErr) return;
+
+    let foundId = null;
+
+    if (db) {
+        const { data } = await db.from('users').select('user_id, email, phone').eq('email', email).maybeSingle();
+        if (data && data.phone === phone) foundId = data.user_id;
+    } else {
+        const userDb = getUserDatabase();
+        const match = Object.values(userDb).find(u => u.email.toLowerCase() === email && u.phone === phone);
+        if (match) foundId = match.userId || match.user_id;
+    }
+
+    if (!foundId) {
+        const el = document.getElementById('forgotEmailError');
+        el.textContent = 'No account found matching this email and phone combination'; el.style.display = 'block';
+        return;
+    }
+
+    document.getElementById('recoveredUserId').textContent = foundId;
+    document.getElementById('forgotUserIdResult').style.display = 'block';
+}
+
+// ── Verify identity for password reset ─────────────────────
+async function verifyForPasswordReset() {
+    const email = document.getElementById('resetEmail').value.trim().toLowerCase();
+    const phone = document.getElementById('resetPhone').value.trim();
+
+    ['resetEmailError','resetPhoneError'].forEach(id => { document.getElementById(id).style.display = 'none'; });
+
+    let hasErr = false;
+    if (!validateEmail(email)) {
+        const el = document.getElementById('resetEmailError');
+        el.textContent = 'Please enter a valid email address'; el.style.display = 'block'; hasErr = true;
+    }
+    if (!/^[0-9]{10}$/.test(phone)) {
+        const el = document.getElementById('resetPhoneError');
+        el.textContent = 'Please enter a valid 10-digit phone number'; el.style.display = 'block'; hasErr = true;
+    }
+    if (hasErr) return;
+
+    let foundId = null;
+
+    if (db) {
+        const { data } = await db.from('users').select('user_id, email, phone').eq('email', email).maybeSingle();
+        if (data && data.phone === phone) foundId = data.user_id;
+    } else {
+        const userDb = getUserDatabase();
+        const match = Object.values(userDb).find(u => u.email.toLowerCase() === email && u.phone === phone);
+        if (match) foundId = match.userId || match.user_id;
+    }
+
+    if (!foundId) {
+        const el = document.getElementById('resetEmailError');
+        el.textContent = 'No account found matching this email and phone combination'; el.style.display = 'block';
+        return;
+    }
+
+    _resetVerifiedUserId = foundId;
+    document.getElementById('forgotPasswordStep1').style.display = 'none';
+    document.getElementById('forgotPasswordStep2').style.display = 'block';
+}
+
+// ── Reset password ──────────────────────────────────────────
+async function resetPassword() {
+    const newPass     = document.getElementById('resetNewPassword').value;
+    const confirmPass = document.getElementById('resetConfirmPassword').value;
+
+    ['resetNewPasswordError','resetConfirmPasswordError'].forEach(id => { document.getElementById(id).style.display = 'none'; });
+
+    let hasErr = false;
+    if (newPass.length < 6) {
+        const el = document.getElementById('resetNewPasswordError');
+        el.textContent = 'Password must be at least 6 characters'; el.style.display = 'block'; hasErr = true;
+    }
+    if (newPass !== confirmPass) {
+        const el = document.getElementById('resetConfirmPasswordError');
+        el.textContent = 'Passwords do not match'; el.style.display = 'block'; hasErr = true;
+    }
+    if (hasErr) return;
+
+    if (!_resetVerifiedUserId) { showAlert('Session expired. Please start over.', 'danger'); return; }
+
+    if (db) {
+        const { error } = await db.from('users').update({ password: newPass }).eq('user_id', _resetVerifiedUserId);
+        if (error) { showAlert('Failed to reset password: ' + error.message, 'danger'); return; }
+    } else {
+        const userDb = getUserDatabase();
+        if (userDb[_resetVerifiedUserId]) {
+            userDb[_resetVerifiedUserId].password = newPass;
+            saveUserDatabase(userDb);
+        }
+    }
+
+    _resetVerifiedUserId = null;
+    closeModal('forgotModal');
+    showAlert('✓ Password reset successfully! You can now login with your new password.', 'success');
+}
+
 </script>
 </body>
 </html>
