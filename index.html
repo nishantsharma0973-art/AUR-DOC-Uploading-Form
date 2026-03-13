@@ -2223,7 +2223,6 @@ async function recoverUserId() {
     const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
     const phone = document.getElementById('forgotPhone').value.trim();
 
-    // Clear errors
     ['forgotEmailError','forgotPhoneError'].forEach(id => { document.getElementById(id).style.display = 'none'; });
     document.getElementById('forgotUserIdResult').style.display = 'none';
 
@@ -2241,12 +2240,40 @@ async function recoverUserId() {
     let foundId = null;
 
     if (db) {
-        const { data } = await db.from('users').select('user_id, email, phone').eq('email', email).maybeSingle();
-        if (data && data.phone === phone) foundId = data.user_id;
+        // FIX 1: use ilike for case-insensitive email match
+        // FIX 2: compare phone as string (cast both sides) to avoid type mismatch
+        const { data: rows } = await db.from('users').select('user_id, email, phone').ilike('email', email);
+        if (rows && rows.length > 0) {
+            const match = rows.find(r => String(r.phone).trim() === phone);
+            if (match) foundId = match.user_id;
+        }
+        // FIX 3: fallback — also check students table (phone stored there after profile completion)
+        if (!foundId) {
+            const { data: stuRows } = await db.from('students').select('user_id, email, phone').ilike('email', email);
+            if (stuRows && stuRows.length > 0) {
+                const match = stuRows.find(r => String(r.phone).trim() === phone);
+                if (match) foundId = match.user_id;
+            }
+        }
     } else {
+        // Local path — check userDatabase
         const userDb = getUserDatabase();
-        const match = Object.values(userDb).find(u => u.email.toLowerCase() === email && u.phone === phone);
+        const match = Object.values(userDb).find(u =>
+            u.email.toLowerCase() === email && String(u.phone).trim() === phone
+        );
         if (match) foundId = match.userId || match.user_id;
+        // Fallback — check students array (phone stored in studentData)
+        if (!foundId) {
+            const students = getStudents();
+            const stu = students.find(s =>
+                (s.email||'').toLowerCase() === email && String(s.phone||'').trim() === phone
+            );
+            if (stu) {
+                // find userId from userDb by email
+                const userEntry = Object.values(userDb).find(u => u.email.toLowerCase() === email);
+                if (userEntry) foundId = userEntry.userId || userEntry.user_id;
+            }
+        }
     }
 
     if (!foundId) {
@@ -2280,12 +2307,37 @@ async function verifyForPasswordReset() {
     let foundId = null;
 
     if (db) {
-        const { data } = await db.from('users').select('user_id, email, phone').eq('email', email).maybeSingle();
-        if (data && data.phone === phone) foundId = data.user_id;
+        // FIX: ilike for case-insensitive email, String() cast for phone type safety
+        const { data: rows } = await db.from('users').select('user_id, email, phone').ilike('email', email);
+        if (rows && rows.length > 0) {
+            const match = rows.find(r => String(r.phone).trim() === phone);
+            if (match) foundId = match.user_id;
+        }
+        // Fallback: check students table
+        if (!foundId) {
+            const { data: stuRows } = await db.from('students').select('user_id, email, phone').ilike('email', email);
+            if (stuRows && stuRows.length > 0) {
+                const match = stuRows.find(r => String(r.phone).trim() === phone);
+                if (match) foundId = match.user_id;
+            }
+        }
     } else {
         const userDb = getUserDatabase();
-        const match = Object.values(userDb).find(u => u.email.toLowerCase() === email && u.phone === phone);
+        const match = Object.values(userDb).find(u =>
+            u.email.toLowerCase() === email && String(u.phone).trim() === phone
+        );
         if (match) foundId = match.userId || match.user_id;
+        // Fallback: check students array
+        if (!foundId) {
+            const students = getStudents();
+            const stu = students.find(s =>
+                (s.email||'').toLowerCase() === email && String(s.phone||'').trim() === phone
+            );
+            if (stu) {
+                const userEntry = Object.values(userDb).find(u => u.email.toLowerCase() === email);
+                if (userEntry) foundId = userEntry.userId || userEntry.user_id;
+            }
+        }
     }
 
     if (!foundId) {
@@ -2324,10 +2376,19 @@ async function resetPassword() {
         if (error) { showAlert('Failed to reset password: ' + error.message, 'danger'); return; }
     } else {
         const userDb = getUserDatabase();
-        if (userDb[_resetVerifiedUserId]) {
-            userDb[_resetVerifiedUserId].password = newPass;
-            saveUserDatabase(userDb);
+        // FIX: check both userId and user_id key formats for local storage
+        const uid = _resetVerifiedUserId;
+        if (userDb[uid]) {
+            userDb[uid].password = newPass;
+        } else {
+            // fallback search by userId field value
+            const entry = Object.values(userDb).find(u => (u.userId || u.user_id) === uid);
+            if (entry) {
+                const key = Object.keys(userDb).find(k => userDb[k] === entry);
+                if (key) userDb[key].password = newPass;
+            }
         }
+        saveUserDatabase(userDb);
     }
 
     _resetVerifiedUserId = null;
