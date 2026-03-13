@@ -916,6 +916,68 @@ function getAssignmentNames() {
 }
 function storeAssignmentNames(names) { localStorage.setItem('assignmentNames', JSON.stringify(names)); }
 
+// ── Cloud settings sync helpers ───────────────────────────────
+async function syncSettingToCloud(key, value) {
+    localStorage.setItem(key, value);
+    if (!db) return;
+    try {
+        await db.from('app_settings').upsert({ key, value: String(value) }, { onConflict: 'key' });
+    } catch(e) { console.warn('syncSettingToCloud failed for', key, e.message); }
+}
+
+async function syncDeadlinesToCloud(deadlines) {
+    saveDeadlines(deadlines);
+    if (!db) return;
+    try {
+        await db.from('deadlines').delete().neq('assignment_key', '__none__');
+        const rows = Object.entries(deadlines).map(([k, v]) => ({ assignment_key: k, deadline_at: v }));
+        if (rows.length > 0) await db.from('deadlines').insert(rows);
+    } catch(e) { console.warn('syncDeadlinesToCloud failed:', e.message); }
+}
+
+async function syncAssignmentNamesToCloud(names) {
+    storeAssignmentNames(names);
+    if (!db) return;
+    try {
+        await db.from('assignment_names').delete().neq('assignment_key', '__none__');
+        const rows = Object.entries(names).map(([k, v]) => ({ assignment_key: k, display_name: v }));
+        if (rows.length > 0) await db.from('assignment_names').insert(rows);
+    } catch(e) { console.warn('syncAssignmentNamesToCloud failed:', e.message); }
+}
+
+// ── Cloud settings sync helpers ───────────────────────────────
+// Upserts a single key/value into app_settings table
+async function syncSettingToCloud(key, value) {
+    localStorage.setItem(key, value);
+    if (!db) return;
+    try {
+        await db.from('app_settings').upsert({ key, value: String(value) }, { onConflict: 'key' });
+    } catch(e) { console.warn('syncSettingToCloud failed for', key, e.message); }
+}
+
+// Upserts all deadlines into the deadlines table
+async function syncDeadlinesToCloud(deadlines) {
+    saveDeadlines(deadlines);
+    if (!db) return;
+    try {
+        const rows = Object.entries(deadlines).map(([k, v]) => ({ assignment_key: k, deadline_at: v }));
+        // Delete removed ones first, then upsert current set
+        await db.from('deadlines').delete().neq('assignment_key', '__none__'); // clears all
+        if (rows.length > 0) await db.from('deadlines').insert(rows);
+    } catch(e) { console.warn('syncDeadlinesToCloud failed:', e.message); }
+}
+
+// Upserts all assignment names into assignment_names table
+async function syncAssignmentNamesToCloud(names) {
+    storeAssignmentNames(names);
+    if (!db) return;
+    try {
+        const rows = Object.entries(names).map(([k, v]) => ({ assignment_key: k, display_name: v }));
+        await db.from('assignment_names').delete().neq('assignment_key', '__none__');
+        if (rows.length > 0) await db.from('assignment_names').insert(rows);
+    } catch(e) { console.warn('syncAssignmentNamesToCloud failed:', e.message); }
+}
+
 // ── Auth helpers ────────────────────────────────────────────
 function generateUserId() {
     const ts  = Date.now().toString(36).toUpperCase();
@@ -1295,22 +1357,19 @@ function loadTheme() {
     document.getElementById('themeIcon').textContent = saved === 'dark' ? '☀️' : '🌙';
 }
 
-// BUG FIX 3: loadThemeSettings — removed non-existent #brandName reference
 function loadThemeSettings() {
-    const savedTheme = localStorage.getItem('selectedTheme');
+    const savedTheme = localStorage.getItem('selectedTheme') || 'blue';
     const selector = document.getElementById('themeSelector');
-    if (savedTheme && selector) {
-        selector.value = savedTheme;
-        if (savedTheme !== 'blue') document.body.classList.add(`theme-${savedTheme}`);
-    }
+    if (selector) selector.value = savedTheme;
+    ['green','purple','orange','red'].forEach(t => document.body.classList.remove('theme-' + t));
+    if (savedTheme !== 'blue') document.body.classList.add('theme-' + savedTheme);
 }
 
-function changeTheme() {
+async function changeTheme() {
     const theme = document.getElementById('themeSelector').value;
-    // FIX: only remove theme-* classes — don't wipe all body classes (breaks dark mode etc.)
     ['green','purple','orange','red'].forEach(t => document.body.classList.remove('theme-' + t));
     if (theme !== 'blue') document.body.classList.add('theme-' + theme);
-    localStorage.setItem('selectedTheme', theme);
+    await syncSettingToCloud('selectedTheme', theme);
 }
 
 // ── Assignment rendering ───────────────────────────────────────
@@ -1671,26 +1730,27 @@ function loadAssignmentNamesEditor() {
     document.getElementById('assignmentNamesContent').innerHTML = html;
 }
 
-function saveAssignmentNames() {
+async function saveAssignmentNames() {
     const count = getAssignmentCount();
     const names = {};
     for (let i = 1; i <= count; i++) {
         const input = document.getElementById(`assignmentName${i}`);
         names[`assignment${i}`] = (input?.value.trim()) || `Assignment ${i}`;
     }
-    storeAssignmentNames(names);
+    await syncAssignmentNamesToCloud(names);
     closeModal('assignmentNamesModal');
     showAlert('Assignment names updated!', 'success');
     renderAssignments(); loadAssignmentStats();
 }
 
-function resetAssignmentNames() {
+async function resetAssignmentNames() {
     if (!confirm('Reset all names to default?')) return;
     const count = getAssignmentCount();
     const names = {};
     for (let i = 1; i <= count; i++) names[`assignment${i}`] = `Assignment ${i}`;
-    storeAssignmentNames(names);
+    await syncAssignmentNamesToCloud(names);
     loadAssignmentNamesEditor();
+    showAlert('Assignment names reset to default!', 'success');
 }
 
 function populateDeadlineAssignmentDropdown() {
@@ -1705,13 +1765,13 @@ function populateDeadlineAssignmentDropdown() {
     }
 }
 
-function setDeadline() {
+async function setDeadline() {
     const num = document.getElementById('deadlineAssignment').value;
     const dt  = document.getElementById('deadlineDateTime').value;
     if (!num || !dt) { showAlert('Please fill in all fields!', 'warning'); return; }
     const deadlines = getDeadlines();
     deadlines[`assignment${num}`] = new Date(dt).toISOString();
-    saveDeadlines(deadlines);
+    await syncDeadlinesToCloud(deadlines);
     closeModal('addDeadlineModal');
     showAlert(`Deadline set for Assignment ${num}!`, 'success');
     loadAssignmentStats();
@@ -1924,10 +1984,13 @@ async function downloadAllFiles() {
 }
 
 // ── Settings ───────────────────────────────────────────────────
-function saveSettings() {
-    localStorage.setItem('allowRegistrations', document.getElementById('allowRegistrations').checked);
-    localStorage.setItem('emailNotifications', document.getElementById('emailNotifications').checked);
-    localStorage.setItem('maxFileSize', document.getElementById('maxFileSize').value);
+async function saveSettings() {
+    const allowReg  = document.getElementById('allowRegistrations').checked;
+    const emailNot  = document.getElementById('emailNotifications').checked;
+    const maxSize   = document.getElementById('maxFileSize').value;
+    await syncSettingToCloud('allowRegistrations', allowReg);
+    await syncSettingToCloud('emailNotifications', emailNot);
+    await syncSettingToCloud('maxFileSize', maxSize);
     showAlert('Settings saved!', 'success');
 }
 
@@ -1957,7 +2020,7 @@ function decreaseAssignments() {
     else showAlert('Minimum 1 assignment required!', 'warning');
 }
 
-function applyAssignmentCount() {
+async function applyAssignmentCount() {
     const newCount = parseInt(document.getElementById('assignmentCount').value);
     const oldCount = getAssignmentCount();
     if (newCount === oldCount) { showAlert('No changes.', 'info'); return; }
@@ -1965,7 +2028,8 @@ function applyAssignmentCount() {
         ? `Decrease from ${oldCount} to ${newCount}? Data for assignments ${newCount+1}–${oldCount} will be removed.`
         : `Increase assignments from ${oldCount} to ${newCount}?`;
     if (!confirm(msg)) return;
-    // Trim deadlines and names
+
+    // Trim deadlines and names, keeping only 1..newCount
     const deadlines = getDeadlines(), newDeadlines = {};
     const names = getAssignmentNames(), newNames = {};
     for (let i = 1; i <= newCount; i++) {
@@ -1973,14 +2037,17 @@ function applyAssignmentCount() {
         if (deadlines[key]) newDeadlines[key] = deadlines[key];
         newNames[key] = names[key] || `Assignment ${i}`;
     }
-    saveDeadlines(newDeadlines);
-    storeAssignmentNames(newNames);
+
+    // Sync everything to cloud
+    await syncDeadlinesToCloud(newDeadlines);
+    await syncAssignmentNamesToCloud(newNames);
+    await syncSettingToCloud('assignmentCount', newCount);
+
     if (newCount < oldCount) {
         const students = getStudents();
         students.forEach(s => { for (let i = newCount+1; i <= oldCount; i++) delete (s.assignments||{})[`assignment${i}`]; });
         saveStudents(students);
     }
-    setAssignmentCount(newCount);
     document.getElementById('currentAssignmentCount').textContent = newCount;
     renderAssignments(); loadAssignmentStats();
     showAlert(`Assignment count updated to ${newCount}!`, 'success');
@@ -2003,20 +2070,21 @@ function restoreData() {
     const file = document.getElementById('restoreFile').files[0];
     if (!file) { showAlert('Please select a backup file!', 'warning'); return; }
     const reader = new FileReader();
-    reader.onload = e => {
+    reader.onload = async e => {
         try {
             const data = JSON.parse(e.target.result);
             if (data.students) saveStudents(data.students);
-            if (data.deadlines) saveDeadlines(data.deadlines);
-            if (data.assignmentNames) storeAssignmentNames(data.assignmentNames);
+            if (data.deadlines) await syncDeadlinesToCloud(data.deadlines);
+            if (data.assignmentNames) await syncAssignmentNamesToCloud(data.assignmentNames);
             if (data.settings) {
-                if (data.settings.assignmentCount) setAssignmentCount(data.settings.assignmentCount);
-                if (data.settings.maxFileSize) localStorage.setItem('maxFileSize', data.settings.maxFileSize);
+                if (data.settings.assignmentCount) await syncSettingToCloud('assignmentCount', data.settings.assignmentCount);
+                if (data.settings.maxFileSize) await syncSettingToCloud('maxFileSize', data.settings.maxFileSize);
+                if (data.settings.allowRegistrations != null) await syncSettingToCloud('allowRegistrations', data.settings.allowRegistrations);
             }
             closeModal('restoreModal');
-            showAlert('Data restored!', 'success');
+            showAlert('Data restored and synced to cloud!', 'success');
             setTimeout(() => location.reload(), 1500);
-        } catch { showAlert('Invalid backup file!', 'danger'); }
+        } catch(err) { showAlert('Invalid backup file!', 'danger'); console.error(err); }
     };
     reader.readAsText(file);
 }
