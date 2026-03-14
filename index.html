@@ -147,7 +147,6 @@
         .form-control.error { border-color: var(--danger-color); }
         textarea.form-control { resize: vertical; min-height: 100px; }
 
-        /* BUG FIX: Restored error summary elements that were referenced but missing from HTML */
         .error-summary {
             background: rgba(239,68,68,0.1); border: 2px solid var(--danger-color);
             border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; display: none;
@@ -216,7 +215,6 @@
         #analyticsChart, #stateChart { min-height: 300px; max-height: 400px; display: block; margin: 0 auto; }
         .no-data-message { text-align: center; padding: 2rem; color: var(--text-secondary); font-size: 1rem; }
 
-        /* Auth pages */
         .auth-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--primary-color), var(--primary-light)); padding: 2rem; }
         .auth-card { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow-xl); padding: 3rem; width: 100%; max-width: 480px; border: 1px solid var(--border-color); }
         .auth-header { text-align: center; margin-bottom: 2rem; }
@@ -262,7 +260,6 @@
         .login-tab:hover { color: var(--primary-color); background: rgba(37,99,235,0.05); }
         .login-tab.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
 
-        /* File management */
         .file-list { margin-top: 1rem; }
         .file-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--background); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 0.5rem; }
         .file-info { flex: 1; }
@@ -271,7 +268,6 @@
         .file-actions { display: flex; gap: 0.5rem; }
         .assignment-file-section { margin-top: 0.5rem; padding: 0.75rem; background: var(--background); border-radius: 6px; border: 1px solid var(--border-color); }
 
-        /* Cloud status */
         .cloud-status-bar { background: linear-gradient(135deg,rgba(37,99,235,0.08),rgba(59,130,246,0.04)); border-bottom: 1px solid var(--border-color); padding: 6px 2rem; display: flex; gap: 16px; align-items: center; font-size: 0.8rem; color: var(--text-secondary); }
         .cloud-status-dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; flex-shrink: 0; }
         .cloud-status-dot.connected { background: var(--success-color); }
@@ -284,7 +280,6 @@
         .upload-progress-fill { height: 100%; background: linear-gradient(90deg,var(--primary-color),var(--primary-light)); width: 0%; transition: width 0.3s; }
         .upload-status-text { font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px; }
 
-        /* BUG FIX: closed .theme-red properly — original had unclosed brace */
         body.theme-green { --primary-color: #10b981; --primary-dark: #059669; --primary-light: #34d399; }
         body.theme-purple { --primary-color: #8b5cf6; --primary-dark: #7c3aed; --primary-light: #a78bfa; }
         body.theme-orange { --primary-color: #f59e0b; --primary-dark: #d97706; --primary-light: #fbbf24; }
@@ -303,9 +298,7 @@
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════════
-     LOGIN PAGE
-═══════════════════════════════════════════════════════════ -->
+<!-- LOGIN PAGE -->
 <div id="loginPage" class="auth-container">
     <div class="auth-card" style="max-width:520px;">
         <div class="auth-header">
@@ -369,9 +362,7 @@
     </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════
-     REGISTRATION PAGE
-═══════════════════════════════════════════════════════════ -->
+<!-- REGISTRATION PAGE -->
 <div id="registrationPage" class="auth-container hidden">
     <div class="auth-card">
         <div class="auth-header">
@@ -391,12 +382,7 @@
                 <div class="auth-error" id="regEmailError"></div>
             </div>
             <div class="auth-form-group">
-                <label class="auth-label">Phone Number</label>
-                <input type="tel" id="regPhone" class="auth-input" placeholder="Enter 10-digit phone number" required pattern="[0-9]{10}" maxlength="10">
-                <div class="auth-error" id="regPhoneError"></div>
-            </div>
-            <div class="auth-form-group">
-                <label class="auth-label">Create Password</label>
+                <label class="auth-label">Password</label>
                 <div class="auth-input-group">
                     <input type="password" id="regPassword" class="auth-input" placeholder="Create a strong password" required oninput="checkPasswordStrength()">
                     <span class="auth-input-icon" onclick="togglePassword('regPassword')">👁️</span>
@@ -520,9 +506,7 @@
     </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════
-     MAIN APP
-═══════════════════════════════════════════════════════════ -->
+<!-- MAIN APP -->
 <div id="mainApp" class="app-container hidden">
     <nav class="top-navbar">
         <div class="navbar-content">
@@ -744,9 +728,7 @@
     </main>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════
-     MODALS
-═══════════════════════════════════════════════════════════ -->
+<!-- MODALS -->
 <div id="assignmentNamesModal" class="modal">
     <div class="modal-content" style="max-width:800px;">
         <div class="modal-header">
@@ -803,21 +785,19 @@
     </div>
 </div>
 
-<!-- ═══ FORGOT USER ID / PASSWORD MODAL ═══ -->
+<!-- FORGOT USER ID / PASSWORD MODAL -->
 <div id="forgotModal" class="modal">
   <div class="modal-content" style="max-width:460px;">
     <div class="modal-header">
       <h3 class="modal-title" id="forgotModalTitle">Account Recovery</h3>
       <button class="close-btn" onclick="closeModal('forgotModal')">&times;</button>
     </div>
-    <!-- Tabs -->
     <div style="display:flex;gap:0;margin-bottom:1.5rem;border-bottom:2px solid var(--border-color);">
       <button id="forgotTabUserId" onclick="switchForgotTab('userid')" style="flex:1;padding:0.75rem;background:none;border:none;border-bottom:3px solid var(--primary-color);color:var(--primary-color);font-weight:600;cursor:pointer;font-size:0.9rem;">🔍 Forgot User ID</button>
       <button id="forgotTabPassword" onclick="switchForgotTab('password')" style="flex:1;padding:0.75rem;background:none;border:none;border-bottom:3px solid transparent;color:var(--text-secondary);font-weight:600;cursor:pointer;font-size:0.9rem;">🔑 Forgot Password</button>
     </div>
-    <!-- Forgot User ID panel -->
     <div id="forgotUserIdPanel">
-      <p style="color:var(--text-secondary);font-size:0.875rem;margin-bottom:1.25rem;">Enter the email and phone number you registered with. We will show you your User ID.</p>
+      <p style="color:var(--text-secondary);font-size:0.875rem;margin-bottom:1.25rem;">Enter the email and phone number you registered with.</p>
       <div class="form-group">
         <label class="form-label">Registered Email</label>
         <input type="email" id="forgotEmail" class="form-control" placeholder="Enter your email">
@@ -835,9 +815,8 @@
         <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:0.5rem;">Copy this and use it to login</div>
       </div>
     </div>
-    <!-- Forgot Password panel -->
     <div id="forgotPasswordPanel" style="display:none;">
-      <p style="color:var(--text-secondary);font-size:0.875rem;margin-bottom:1.25rem;">Verify your identity with your email and phone number, then set a new password.</p>
+      <p style="color:var(--text-secondary);font-size:0.875rem;margin-bottom:1.25rem;">Verify your identity, then set a new password.</p>
       <div id="forgotPasswordStep1">
         <div class="form-group">
           <label class="form-label">Registered Email</label>
@@ -875,9 +854,6 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════
-     JAVASCRIPT — ALL BUGS FIXED
-═══════════════════════════════════════════════════════════ -->
 <script>
 'use strict';
 
@@ -886,7 +862,7 @@ const DEFAULT_ADMIN = { username: 'admin', password: 'admin123' };
 const SUPABASE_URL  = 'https://mjnybgzjfshiwcyrpxxj.supabase.co';
 const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qbnliZ3pqZnNoaXdjeXJweHhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTM5MTUsImV4cCI6MjA4ODk2OTkxNX0.aIeZKMtfG4e814p5ah-nwAMMPIBeTCPVhvLtoBHuLEg';
 
-let db = null; // Supabase client
+let db = null;
 
 if (!localStorage.getItem('adminCredentials')) {
     localStorage.setItem('adminCredentials', JSON.stringify(DEFAULT_ADMIN));
@@ -898,7 +874,7 @@ const saveStudents       = s  => localStorage.setItem('students', JSON.stringify
 const getDeadlines       = () => JSON.parse(localStorage.getItem('deadlines')       || '{}');
 const saveDeadlines      = d  => localStorage.setItem('deadlines', JSON.stringify(d));
 const getUserDatabase    = () => JSON.parse(localStorage.getItem('userDatabase')    || '{}');
-const saveUserDatabase   = db => localStorage.setItem('userDatabase', JSON.stringify(db));
+const saveUserDatabase   = udb => localStorage.setItem('userDatabase', JSON.stringify(udb));
 const getCurrentUser     = () => JSON.parse(sessionStorage.getItem('currentUser')   || 'null');
 const setCurrentUser     = u  => sessionStorage.setItem('currentUser', JSON.stringify(u));
 const clearCurrentUser   = ()  => sessionStorage.removeItem('currentUser');
@@ -916,7 +892,7 @@ function getAssignmentNames() {
 }
 function storeAssignmentNames(names) { localStorage.setItem('assignmentNames', JSON.stringify(names)); }
 
-// ── Cloud settings sync helpers ───────────────────────────────
+// ── Cloud sync helpers ─────────────────────────────────────
 async function syncSettingToCloud(key, value) {
     localStorage.setItem(key, value);
     if (!db) return;
@@ -945,39 +921,6 @@ async function syncAssignmentNamesToCloud(names) {
     } catch(e) { console.warn('syncAssignmentNamesToCloud failed:', e.message); }
 }
 
-// ── Cloud settings sync helpers ───────────────────────────────
-// Upserts a single key/value into app_settings table
-async function syncSettingToCloud(key, value) {
-    localStorage.setItem(key, value);
-    if (!db) return;
-    try {
-        await db.from('app_settings').upsert({ key, value: String(value) }, { onConflict: 'key' });
-    } catch(e) { console.warn('syncSettingToCloud failed for', key, e.message); }
-}
-
-// Upserts all deadlines into the deadlines table
-async function syncDeadlinesToCloud(deadlines) {
-    saveDeadlines(deadlines);
-    if (!db) return;
-    try {
-        const rows = Object.entries(deadlines).map(([k, v]) => ({ assignment_key: k, deadline_at: v }));
-        // Delete removed ones first, then upsert current set
-        await db.from('deadlines').delete().neq('assignment_key', '__none__'); // clears all
-        if (rows.length > 0) await db.from('deadlines').insert(rows);
-    } catch(e) { console.warn('syncDeadlinesToCloud failed:', e.message); }
-}
-
-// Upserts all assignment names into assignment_names table
-async function syncAssignmentNamesToCloud(names) {
-    storeAssignmentNames(names);
-    if (!db) return;
-    try {
-        const rows = Object.entries(names).map(([k, v]) => ({ assignment_key: k, display_name: v }));
-        await db.from('assignment_names').delete().neq('assignment_key', '__none__');
-        if (rows.length > 0) await db.from('assignment_names').insert(rows);
-    } catch(e) { console.warn('syncAssignmentNamesToCloud failed:', e.message); }
-}
-
 // ── Auth helpers ────────────────────────────────────────────
 function generateUserId() {
     const ts  = Date.now().toString(36).toUpperCase();
@@ -987,7 +930,6 @@ function generateUserId() {
 
 function validateEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
 
-// BUG FIX 1: Single showAuthFieldError for auth forms (was named showFieldError — conflicted)
 function showAuthFieldError(fieldId, errorId, message) {
     const field = document.getElementById(fieldId);
     const errorEl = document.getElementById(errorId);
@@ -1061,34 +1003,42 @@ function checkPasswordStrength() {
 
 function togglePassword(fieldId) {
     const f = document.getElementById(fieldId);
-    f.type = f.type === 'password' ? 'text' : 'password';
+    if (f) f.type = f.type === 'password' ? 'text' : 'password';
 }
 
 // ── Registration ─────────────────────────────────────────────
-// BUG FIX 2: Single unified function — no _orig wrapping needed
+// FIX: Phone is NO LONGER inserted into the `users` table.
+// It is only stored in `students` table during profile completion.
+// This avoids the "Could not find the 'phone' column of 'users'" error.
 async function handleRegistration(event) {
     event.preventDefault();
     clearAuthErrors();
     const name    = document.getElementById('regName').value.trim();
     const email   = document.getElementById('regEmail').value.trim();
-    const phone   = document.getElementById('regPhone').value.trim();
     const password= document.getElementById('regPassword').value;
     const confirm = document.getElementById('regConfirmPassword').value;
 
     let hasErr = false;
-    if (name.length < 3)                    { showAuthFieldError('regName','regNameError','Name must be at least 3 characters'); hasErr = true; }
-    if (!validateEmail(email))              { showAuthFieldError('regEmail','regEmailError','Please enter a valid email'); hasErr = true; }
-    if (!/^[0-9]{10}$/.test(phone))        { showAuthFieldError('regPhone','regPhoneError','Please enter a valid 10-digit phone number'); hasErr = true; }
-    if (password.length < 6)               { showAuthFieldError('regPassword','regPasswordError','Password must be at least 6 characters'); hasErr = true; }
-    if (password !== confirm)              { showAuthFieldError('regConfirmPassword','regConfirmPasswordError','Passwords do not match'); hasErr = true; }
+    if (name.length < 3)       { showAuthFieldError('regName','regNameError','Name must be at least 3 characters'); hasErr = true; }
+    if (!validateEmail(email)) { showAuthFieldError('regEmail','regEmailError','Please enter a valid email'); hasErr = true; }
+    if (password.length < 6)   { showAuthFieldError('regPassword','regPasswordError','Password must be at least 6 characters'); hasErr = true; }
+    if (password !== confirm)  { showAuthFieldError('regConfirmPassword','regConfirmPasswordError','Passwords do not match'); hasErr = true; }
     if (hasErr) return;
 
-    // Cloud path
     if (db) {
+        // Check for duplicate email
         const { data: existing } = await db.from('users').select('user_id').eq('email', email).maybeSingle();
         if (existing) { showAuthFieldError('regEmail','regEmailError','This email is already registered'); return; }
+
         const userId = generateUserId();
-        const { error } = await db.from('users').insert({ user_id: userId, name, email, phone, password, profile_completed: false });
+        // FIX: Only insert columns that exist in the users table (no phone here)
+        const { error } = await db.from('users').insert({
+            user_id: userId,
+            name,
+            email,
+            password,
+            profile_completed: false
+        });
         if (error) { showAlert('Registration failed: ' + error.message, 'danger'); return; }
         showRegistrationSuccess(userId);
     } else {
@@ -1097,21 +1047,23 @@ async function handleRegistration(event) {
         if (Object.values(userDb).some(u => u.email.toLowerCase() === email.toLowerCase())) {
             showAuthFieldError('regEmail','regEmailError','An account with this email already exists'); return;
         }
-        if (Object.values(userDb).some(u => u.phone === phone)) {
-            showAuthFieldError('regPhone','regPhoneError','An account with this phone number already exists'); return;
-        }
         const userId = generateUserId();
-        userDb[userId] = { userId, name, email, phone, password, createdAt: new Date().toISOString(), studentData: null, profileCompleted: false };
+        userDb[userId] = {
+            userId, name, email, password,
+            createdAt: new Date().toISOString(),
+            studentData: null,
+            profileCompleted: false
+        };
         saveUserDatabase(userDb);
         showRegistrationSuccess(userId);
     }
 
-    // Clear form
-    ['regName','regEmail','regPhone','regPassword','regConfirmPassword'].forEach(id => { document.getElementById(id).value = ''; });
+    ['regName','regEmail','regPassword','regConfirmPassword'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+    });
 }
 
 // ── Login ─────────────────────────────────────────────────────
-// BUG FIX 2 continued: Single unified async login
 async function handleLogin(event) {
     event.preventDefault();
     clearAuthErrors();
@@ -1182,7 +1134,6 @@ function handleLogout() {
 
 function adminLogout() {
     sessionStorage.removeItem('adminLoggedIn');
-    // FIX: hide logout button immediately before redirect to avoid flash
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) logoutBtn.style.display = 'none';
     showLogin();
@@ -1191,7 +1142,6 @@ function adminLogout() {
 }
 
 // ── Profile submission ────────────────────────────────────────
-// BUG FIX 2 continued: unified
 async function submitStudentProfile(event) {
     event.preventDefault();
     clearAuthErrors();
@@ -1199,17 +1149,17 @@ async function submitStudentProfile(event) {
     if (!currentUser) { showLogin(); return; }
 
     const profileData = {
-        name:        document.getElementById('profileName').value.trim(),
-        phone:       document.getElementById('profilePhone').value.trim(),
-        enrollment:  document.getElementById('profileEnrollment').value.trim(),
-        dob:         document.getElementById('profileDOB').value,
-        age:         document.getElementById('profileAge').value,
-        gender:      document.getElementById('profileGender').value,
-        state:       document.getElementById('profileState').value.trim(),
-        district:    document.getElementById('profileDistrict').value.trim(),
-        pincode:     document.getElementById('profilePincode').value.trim(),
-        full_address:document.getElementById('profileAddress').value.trim(),
-        email:       currentUser.email || currentUser.Email || ''
+        name:         document.getElementById('profileName').value.trim(),
+        phone:        document.getElementById('profilePhone').value.trim(),
+        enrollment:   document.getElementById('profileEnrollment').value.trim(),
+        dob:          document.getElementById('profileDOB').value,
+        age:          document.getElementById('profileAge').value,
+        gender:       document.getElementById('profileGender').value,
+        state:        document.getElementById('profileState').value.trim(),
+        district:     document.getElementById('profileDistrict').value.trim(),
+        pincode:      document.getElementById('profilePincode').value.trim(),
+        full_address: document.getElementById('profileAddress').value.trim(),
+        email:        currentUser.email || ''
     };
 
     let hasErr = false;
@@ -1226,10 +1176,8 @@ async function submitStudentProfile(event) {
         if (error) { showAlert('Failed to save profile: ' + error.message, 'danger'); return; }
         await db.from('users').update({ profile_completed: true }).eq('user_id', userId);
     } else {
-        // Local path
         const studentData = {
             id: Date.now(), ...profileData,
-            // BUG FIX 4: normalised to lowercase 'enrollment' throughout
             Enrollment: profileData.enrollment,
             fullAddress: profileData.full_address,
             assignments: {}, registeredAt: new Date().toISOString(), profileCompleted: true
@@ -1277,7 +1225,6 @@ async function loadUserDataAfterLogin(user) {
 }
 
 // ── Check auth on page load ───────────────────────────────────
-// BUG FIX 6 (medium): cloud checkAuthentication now handles admin-only session
 async function checkAuthentication() {
     const currentUser = getCurrentUser();
     if (currentUser) {
@@ -1293,7 +1240,6 @@ async function checkAuthentication() {
             await loadUserDataAfterLogin(currentUser);
         }
     } else if (isAdminLoggedIn()) {
-        // BUG FIX: was missing this branch — admin got kicked to login on refresh
         showMainApp();
         updateUIForAdminStatus();
         await loadDashboardStats();
@@ -1330,7 +1276,6 @@ function openModal(modalId) {
 }
 function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
 
-// BUG FIX 5: switchTab now receives the element explicitly — no implicit window.event
 function switchTab(tabName, el) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -1420,7 +1365,6 @@ async function submitAssignments() {
     const maxFileSize = parseInt(localStorage.getItem('maxFileSize') || '10') * 1024 * 1024;
     let hasFiles = false;
 
-    // Validate first
     for (let i = 1; i <= assignmentCount; i++) {
         const fileInput = document.getElementById(`assignment${i}`);
         if (!fileInput || fileInput.files.length === 0) continue;
@@ -1438,7 +1382,6 @@ async function submitAssignments() {
     if (!hasFiles) { showAlert('Please select at least one file!', 'warning'); return; }
 
     if (db) {
-        // Cloud upload
         const uid = currentUser.user_id || currentUser.userId;
         const { data: student } = await db.from('students').select('id').eq('user_id', uid).maybeSingle();
         if (!student) { showAlert('Profile not found. Please complete your profile first.', 'danger'); return; }
@@ -1462,7 +1405,6 @@ async function submitAssignments() {
         }
         showAlert('✓ Assignments uploaded to cloud!', 'success');
     } else {
-        // Local storage upload
         const uid = currentUser.userId || currentUser.user_id;
         const userDb = getUserDatabase();
         const user = userDb[uid];
@@ -1564,7 +1506,6 @@ async function loadDashboardStats() {
 }
 
 // ── Students table ─────────────────────────────────────────────
-// BUG FIX 4: normalised enrollment column — cloud students show correctly
 async function loadStudentsTable() {
     const students = await getStudentsFromCloud();
     if (db) {
@@ -1584,7 +1525,6 @@ function renderStudentsTable(students, asgCounts, isCloud) {
         tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:2rem;color:var(--text-secondary);">No students registered yet</td></tr>'; return;
     }
     students.forEach(s => {
-        // BUG FIX 4: use lowercase 'enrollment' for cloud, fallback to 'Enrollment' for local
         const enrollDisplay = s.enrollment || s.Enrollment || 'N/A';
         const row = tbody.insertRow();
         const viewFn = isCloud ? `viewStudentDetailsCloud(${s.id})` : `viewStudentDetailsLocal(${s.id})`;
@@ -1604,7 +1544,6 @@ async function searchStudents() {
         (s.enrollment||s.Enrollment||'').toLowerCase().includes(term) ||
         (s.state||'').toLowerCase().includes(term) || (s.district||'').toLowerCase().includes(term)
     );
-    // FIX: use cloud-aware render — pass isCloud flag so view/delete buttons work correctly
     if (db) {
         const { data: asgns } = await db.from('assignments').select('student_id');
         const asgCounts = {};
@@ -1615,7 +1554,6 @@ async function searchStudents() {
     }
 }
 
-// View student details
 async function viewStudentDetailsCloud(studentId) {
     if (!db) { viewStudentDetailsLocal(studentId); return; }
     const { data: student } = await db.from('students').select('*').eq('id', studentId).maybeSingle();
@@ -1679,7 +1617,6 @@ function showStudentModal(student, asgnsHTML) {
 
 async function deleteStudentCloud(studentId) {
     if (!confirm('Delete this student and all their assignments?')) return;
-    // FIX: fetch user_id BEFORE deleting — row won't exist after delete
     const { data: studentRow } = await db.from('students').select('user_id').eq('id', studentId).maybeSingle();
     const userIdToDelete = studentRow?.user_id || null;
     const { data: asgns } = await db.from('assignments').select('file_path').eq('student_id', studentId);
@@ -1778,7 +1715,6 @@ async function setDeadline() {
 }
 
 async function loadAssignmentStats() {
-    // FIX: use cloud data when Supabase is connected
     const students  = await getStudentsFromCloud();
     const deadlines = await getDeadlinesFromCloud();
     const names     = db ? await getAssignmentNamesFromCloud() : getAssignmentNames();
@@ -1788,7 +1724,6 @@ async function loadAssignmentStats() {
     let statsHTML = '<div class="stats-grid">';
     let listHTML  = '<div class="form-section">';
 
-    // For cloud: count assignments per assignment_key from assignments table
     let cloudAsgCounts = {};
     if (db) {
         const { data: asgns } = await db.from('assignments').select('assignment_key');
@@ -1812,7 +1747,6 @@ async function loadAssignmentStats() {
 }
 
 // ── Files manager ──────────────────────────────────────────────
-// BUG FIX: unified single function — no _orig recursion risk
 async function loadFilesManager() {
     const searchTerm = (document.getElementById('searchFiles')?.value || '').toLowerCase();
     const assignmentNames = db ? await getAssignmentNamesFromCloud() : getAssignmentNames();
@@ -1864,7 +1798,6 @@ async function loadFilesManager() {
 }
 
 // ── Analytics ─────────────────────────────────────────────────
-// BUG FIX: single unified function
 async function loadAnalytics() {
     if (typeof Chart === 'undefined') { showAlert('Chart.js not loaded.', 'danger'); return; }
     const students = await getStudentsFromCloud();
@@ -1897,7 +1830,6 @@ async function loadAnalytics() {
         options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
     });
 
-    // State distribution
     const stateData = {};
     students.forEach(s => { const st = s.state; if (st) stateData[st] = (stateData[st]||0) + 1; });
     const stateCanvas = document.getElementById('stateChart');
@@ -1915,7 +1847,6 @@ async function loadAnalytics() {
 
 // ── Export / download ──────────────────────────────────────────
 async function downloadAllData() {
-    // FIX: use cloud data when Supabase is connected
     const students  = await getStudentsFromCloud();
     const deadlines = await getDeadlinesFromCloud();
     const names     = db ? await getAssignmentNamesFromCloud() : getAssignmentNames();
@@ -1934,7 +1865,7 @@ async function exportToExcel() {
     const allAsgns        = db ? (await db.from('assignments').select('*')).data : null;
 
     const data = students.map(s => {
-        const row = { 'Name': s.name, 'Email': s.email, 'Phone': s.phone, 'Enrollment': s.enrollment||s.Enrollment||'', 'DOB': s.dob||'', 'Age': s.age||'', 'Gender': s.gender||'', 'District': s.district||'', 'State': s.state||'', 'PIN': s.pincode||'', 'Address': s.full_address||s.fullAddress||'', 'Registered': new Date(s.registered_at||s.registeredAt).toLocaleString() };
+        const row = { 'Name': s.name, 'Email': s.email, 'Phone': s.phone||'', 'Enrollment': s.enrollment||s.Enrollment||'', 'DOB': s.dob||'', 'Age': s.age||'', 'Gender': s.gender||'', 'District': s.district||'', 'State': s.state||'', 'PIN': s.pincode||'', 'Address': s.full_address||s.fullAddress||'', 'Registered': new Date(s.registered_at||s.registeredAt).toLocaleString() };
         for (let i = 1; i <= count; i++) {
             const key = `assignment${i}`;
             const name = assignmentNames[key] || `Assignment ${i}`;
@@ -2029,7 +1960,6 @@ async function applyAssignmentCount() {
         : `Increase assignments from ${oldCount} to ${newCount}?`;
     if (!confirm(msg)) return;
 
-    // Trim deadlines and names, keeping only 1..newCount
     const deadlines = getDeadlines(), newDeadlines = {};
     const names = getAssignmentNames(), newNames = {};
     for (let i = 1; i <= newCount; i++) {
@@ -2038,7 +1968,6 @@ async function applyAssignmentCount() {
         newNames[key] = names[key] || `Assignment ${i}`;
     }
 
-    // Sync everything to cloud
     await syncDeadlinesToCloud(newDeadlines);
     await syncAssignmentNamesToCloud(newNames);
     await syncSettingToCloud('assignmentCount', newCount);
@@ -2054,7 +1983,6 @@ async function applyAssignmentCount() {
 }
 
 async function backupData() {
-    // FIX: use cloud data when Supabase is connected
     const students  = await getStudentsFromCloud();
     const deadlines = await getDeadlinesFromCloud();
     const names     = db ? await getAssignmentNamesFromCloud() : getAssignmentNames();
@@ -2166,12 +2094,11 @@ function setupRealtimeSubscriptions() {
         });
 }
 
-// ── DOMContentLoaded init ─────────────────────────────────────
+// ── DOMContentLoaded ──────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
     loadTheme();
     loadThemeSettings();
 
-    // Restore settings
     const savedCount = getAssignmentCount();
     const acEl = document.getElementById('assignmentCount');
     const ccEl = document.getElementById('currentAssignmentCount');
@@ -2190,7 +2117,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     const msEl = document.getElementById('maxFileSize');
     if (msEl && maxSize) msEl.value = maxSize;
 
-    // Auto-calc age on profile page
     const profileDOB = document.getElementById('profileDOB');
     if (profileDOB) {
         profileDOB.addEventListener('change', () => {
@@ -2203,7 +2129,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Connect Supabase, then authenticate
     let attempts = 0;
     const tryInit = async () => {
         if (window.supabase?.createClient) {
@@ -2225,19 +2150,14 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ── FORGOT USER ID / PASSWORD ──────────────────────────────
-
-// Stores the verified user_id during password reset flow
 let _resetVerifiedUserId = null;
 
 function openForgotModal(tab) {
-    // Clear all fields and results
     ['forgotEmail','forgotPhone','resetEmail','resetPhone','resetNewPassword','resetConfirmPassword'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
+        const el = document.getElementById(id); if (el) el.value = '';
     });
     ['forgotEmailError','forgotPhoneError','resetEmailError','resetPhoneError','resetNewPasswordError','resetConfirmPasswordError'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
+        const el = document.getElementById(id); if (el) el.style.display = 'none';
     });
     const result = document.getElementById('forgotUserIdResult');
     if (result) result.style.display = 'none';
@@ -2246,7 +2166,6 @@ function openForgotModal(tab) {
     const step1 = document.getElementById('forgotPasswordStep1');
     if (step1) step1.style.display = 'block';
     _resetVerifiedUserId = null;
-
     document.getElementById('forgotModal').classList.add('active');
     switchForgotTab(tab);
 }
@@ -2271,7 +2190,6 @@ function switchForgotTab(tab) {
         userIdTab.style.color             = 'var(--text-secondary)';
         passPanel.style.display   = 'block';
         userIdPanel.style.display = 'none';
-        // FIX: always reset password flow to Step 1 when switching to this tab
         const s1 = document.getElementById('forgotPasswordStep1');
         const s2 = document.getElementById('forgotPasswordStep2');
         if (s1) s1.style.display = 'block';
@@ -2286,7 +2204,7 @@ function switchForgotTab(tab) {
     }
 }
 
-// ── Recover User ID ────────────────────────────────────────
+// Recover User ID — searches students table (where phone IS stored)
 async function recoverUserId() {
     const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
     const phone = document.getElementById('forgotPhone').value.trim();
@@ -2308,36 +2226,34 @@ async function recoverUserId() {
     let foundId = null;
 
     if (db) {
-        // FIX 1: use ilike for case-insensitive email match
-        // FIX 2: compare phone as string (cast both sides) to avoid type mismatch
-        const { data: rows } = await db.from('users').select('user_id, email, phone').ilike('email', email);
-        if (rows && rows.length > 0) {
-            const match = rows.find(r => String(r.phone).trim() === phone);
+        // Phone is stored in students table (not users), so search there
+        const { data: stuRows } = await db.from('students').select('user_id, email, phone').ilike('email', email);
+        if (stuRows && stuRows.length > 0) {
+            const match = stuRows.find(r => String(r.phone).trim() === phone);
             if (match) foundId = match.user_id;
         }
-        // FIX 3: fallback — also check students table (phone stored there after profile completion)
+        // Fallback: check users table if phone column exists
         if (!foundId) {
-            const { data: stuRows } = await db.from('students').select('user_id, email, phone').ilike('email', email);
-            if (stuRows && stuRows.length > 0) {
-                const match = stuRows.find(r => String(r.phone).trim() === phone);
-                if (match) foundId = match.user_id;
-            }
+            try {
+                const { data: rows } = await db.from('users').select('user_id, email, phone').ilike('email', email);
+                if (rows && rows.length > 0) {
+                    const match = rows.find(r => r.phone && String(r.phone).trim() === phone);
+                    if (match) foundId = match.user_id;
+                }
+            } catch(e) { /* phone column may not exist in users, ignore */ }
         }
     } else {
-        // Local path — check userDatabase
         const userDb = getUserDatabase();
         const match = Object.values(userDb).find(u =>
-            u.email.toLowerCase() === email && String(u.phone).trim() === phone
+            u.email.toLowerCase() === email && String(u.phone||'').trim() === phone
         );
         if (match) foundId = match.userId || match.user_id;
-        // Fallback — check students array (phone stored in studentData)
         if (!foundId) {
             const students = getStudents();
             const stu = students.find(s =>
                 (s.email||'').toLowerCase() === email && String(s.phone||'').trim() === phone
             );
             if (stu) {
-                // find userId from userDb by email
                 const userEntry = Object.values(userDb).find(u => u.email.toLowerCase() === email);
                 if (userEntry) foundId = userEntry.userId || userEntry.user_id;
             }
@@ -2354,7 +2270,7 @@ async function recoverUserId() {
     document.getElementById('forgotUserIdResult').style.display = 'block';
 }
 
-// ── Verify identity for password reset ─────────────────────
+// Verify identity for password reset
 async function verifyForPasswordReset() {
     const email = document.getElementById('resetEmail').value.trim().toLowerCase();
     const phone = document.getElementById('resetPhone').value.trim();
@@ -2375,27 +2291,27 @@ async function verifyForPasswordReset() {
     let foundId = null;
 
     if (db) {
-        // FIX: ilike for case-insensitive email, String() cast for phone type safety
-        const { data: rows } = await db.from('users').select('user_id, email, phone').ilike('email', email);
-        if (rows && rows.length > 0) {
-            const match = rows.find(r => String(r.phone).trim() === phone);
+        // Search students table first (phone stored there)
+        const { data: stuRows } = await db.from('students').select('user_id, email, phone').ilike('email', email);
+        if (stuRows && stuRows.length > 0) {
+            const match = stuRows.find(r => String(r.phone).trim() === phone);
             if (match) foundId = match.user_id;
         }
-        // Fallback: check students table
         if (!foundId) {
-            const { data: stuRows } = await db.from('students').select('user_id, email, phone').ilike('email', email);
-            if (stuRows && stuRows.length > 0) {
-                const match = stuRows.find(r => String(r.phone).trim() === phone);
-                if (match) foundId = match.user_id;
-            }
+            try {
+                const { data: rows } = await db.from('users').select('user_id, email, phone').ilike('email', email);
+                if (rows && rows.length > 0) {
+                    const match = rows.find(r => r.phone && String(r.phone).trim() === phone);
+                    if (match) foundId = match.user_id;
+                }
+            } catch(e) { /* ignore if phone column missing */ }
         }
     } else {
         const userDb = getUserDatabase();
         const match = Object.values(userDb).find(u =>
-            u.email.toLowerCase() === email && String(u.phone).trim() === phone
+            u.email.toLowerCase() === email && String(u.phone||'').trim() === phone
         );
         if (match) foundId = match.userId || match.user_id;
-        // Fallback: check students array
         if (!foundId) {
             const students = getStudents();
             const stu = students.find(s =>
@@ -2419,7 +2335,7 @@ async function verifyForPasswordReset() {
     document.getElementById('forgotPasswordStep2').style.display = 'block';
 }
 
-// ── Reset password ──────────────────────────────────────────
+// Reset password
 async function resetPassword() {
     const newPass     = document.getElementById('resetNewPassword').value;
     const confirmPass = document.getElementById('resetConfirmPassword').value;
@@ -2444,12 +2360,10 @@ async function resetPassword() {
         if (error) { showAlert('Failed to reset password: ' + error.message, 'danger'); return; }
     } else {
         const userDb = getUserDatabase();
-        // FIX: check both userId and user_id key formats for local storage
         const uid = _resetVerifiedUserId;
         if (userDb[uid]) {
             userDb[uid].password = newPass;
         } else {
-            // fallback search by userId field value
             const entry = Object.values(userDb).find(u => (u.userId || u.user_id) === uid);
             if (entry) {
                 const key = Object.keys(userDb).find(k => userDb[k] === entry);
@@ -2463,7 +2377,6 @@ async function resetPassword() {
     closeModal('forgotModal');
     showAlert('✓ Password reset successfully! You can now login with your new password.', 'success');
 }
-
 </script>
 </body>
 </html>
